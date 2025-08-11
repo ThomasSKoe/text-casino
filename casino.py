@@ -64,13 +64,13 @@ class Casino:
         s = self.stats
         print("===  Stats ===\n")
 
-        print(f"Final balance:      {self.balance}\n")
-        print(f"Highest balance:    {s['highestBalance']}")
-        print(f"Biggest win:        {s['biggestWin']}")
-        print(f"Biggest loss:       {s['biggestLoss']}\n")
-        print(f"Blackjack wins:     {s['blackjackWins']}")
-        print(f"Blackjack Loses:    {s['blackjackLoses']}\n")
-        print(f"Natural Blackjacks: {s['blackjacks']}\n")
+        print(f"Final balance:      | {self.balance}\n")
+        print(f"Highest balance:    | {s['highestBalance']}")
+        print(f"Biggest win:        | {s['biggestWin']}")
+        print(f"Biggest loss:       | {s['biggestLoss']}\n")
+        print(f"Blackjack wins:     | {s['blackjackWins']}")
+        print(f"Blackjack Loses:    | {s['blackjackLoses']}\n")
+        print(f"Natural Blackjacks: | {s['blackjacks']}\n")
 
     def cashOut(self) :
         self.showStats()
