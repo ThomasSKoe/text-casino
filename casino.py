@@ -13,9 +13,9 @@ class Casino:
             "biggestWin": 0,
             "biggestLoss": 0,
             "blackjackWins": 0,
-            "blackjackLoses": 0
+            "blackjackLoses": 0,
+            "blackjacks": 0
         }
-
 
     def mainMenu(self):
 
@@ -64,17 +64,17 @@ class Casino:
         s = self.stats
         print("===  Stats ===\n")
 
-        print(f"Final balance:   {self.balance}")
-        print(f"Highest balance: {s["highestBalance"]}")
-        print(f"Biggest win:     {s["biggestWin"]}")
-        print(f"Biggest loss:    {s["biggestLoss"]}\n")
-        print(f"Blackjack wins:  {s["blackjackWins"]}")
-        print(f"Blackjack Loses: {s["blackjackLoses"]}\n")
+        print(f"Final balance:      {self.balance}\n")
+        print(f"Highest balance:    {s['highestBalance']}")
+        print(f"Biggest win:        {s['biggestWin']}")
+        print(f"Biggest loss:       {s['biggestLoss']}\n")
+        print(f"Blackjack wins:     {s['blackjackWins']}")
+        print(f"Blackjack Loses:    {s['blackjackLoses']}\n")
+        print(f"Natural Blackjacks: {s['blackjacks']}\n")
 
     def cashOut(self) :
         self.showStats()
-
-    
+  
     def removeBalance(self, amount) :
         self.balance = self.balance - amount
     
@@ -206,9 +206,10 @@ class Blackjack :
         dealerScore = 0
         playerScore = 0
 
-        dealerHand = [deck.drawCard()]
-        playerHand = [deck.drawCard(), deck.drawCard(),]
+        dealerHand = [deck.drawCard(), deck.drawCard()]
+        playerHand = [deck.drawCard(), deck.drawCard()]
 
+        dealerUpScore = self.calculateScore([dealerHand[0]])
         dealerScore = self.calculateScore(dealerHand)
         playerScore = self.calculateScore(playerHand)
 
@@ -221,18 +222,45 @@ class Blackjack :
             ]))
         
         
-        print(f"Dealer hand: (Score: {dealerScore})")
-        self.printHand(dealerHand)
+        print(f"Dealer hand: (Score: {dealerUpScore})")
+        print(f"{dealerHand[0].getRank()} of {dealerHand[0].getSuit()}")
+        print("[hole card hidden]")
+        print("----------")
+
         print(f"Your hand: (Score: {playerScore})")
         self.printHand(playerHand)
         
-        if(playerScore == 21 and len(playerHand) == 2) :
-            win = self.bet + (self.bet/2)
-            self.winBalance(int(win))
-            self.casino.stats["blackjackWins"] += 1
-            print(f"Natural Blackjack. You win ${int(win)}")
-            return
+        playerNatural = (playerScore == 21 and len(playerHand) == 2)
+        dealerNatural = (dealerScore == 21 and len(dealerHand) == 2)
 
+        if (dealerNatural or playerNatural) :
+            clearScreen()
+            print("\n".join([
+                ">>==============================================<<",
+                "🃏 Blackjack 🃏".center(48),
+                f"Balance: ${self.casino.balance} | Bet: ${self.bet}".center(50),
+                ">>==============================================<<"
+            ]))
+            print(f"Dealer hand: (Score: {dealerScore})")
+            self.printHand(dealerHand)
+            print(f"Your hand: (Score: {playerScore})")
+            self.printHand(playerHand)
+
+            if dealerNatural and playerNatural:
+                print("Both have natural blackjack! Wow! Push. Bet is returned.")
+                return
+            elif playerNatural:
+                win = self.bet + (self.bet // 2)       
+                self.winBalance(win)
+                self.casino.stats["blackjackWins"] += 1
+                self.casino.stats["blackjacks"] += 1
+                print(f"Natural Blackjack! You win ${win}.")
+                return
+            else:
+                self.loseBalance(self.bet)
+                self.casino.stats["blackjackLoses"] += 1
+                print(f"Dealer has natural blackjack. You lose ${self.bet}.")
+                return
 
         while True :
             i = input("Would you like to (h)it or (s)tand? > ")
@@ -248,15 +276,18 @@ class Blackjack :
                     f"Balance: ${self.casino.balance} | Bet: ${self.bet}".center(50),
                     ">>==============================================<<"
                 ]))
-
-                print(f"Dealer hand: (Score: {dealerScore})")
-                self.printHand(dealerHand)
+                
+                print(f"Dealer hand: (Score: {dealerUpScore})")
+                print(f"{dealerHand[0].getRank()} of {dealerHand[0].getSuit()}")
+                print("[hole card hidden]")
+                print("----------")
                 print(f"Your hand: (Score: {playerScore})")
                 self.printHand(playerHand)
 
                 #if player busts
                 if(playerScore > 21) :
                     self.loseBalance(self.bet)
+                    self.casino.stats["blackjackLoses"] += 1
                     print(f"Bust. You lose ${self.bet}.")
                     return
 
