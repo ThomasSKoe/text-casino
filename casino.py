@@ -8,20 +8,35 @@ class Casino:
 
     def __init__(self, startingMoney):
         self.balance = startingMoney
+        self.stats = {
+            "highestBalance": startingMoney,
+            "biggestWin": 0,
+            "biggestLoss": 0,
+            "blackjackWins": 0,
+            "blackjackLoses": 0
+        }
+
 
     def mainMenu(self):
 
-        clearScreen()
-        print("@~~~~~~~~~~~~~~~~~~~~~~@\nWelcome to the Casino")
-        print(f"Balance: ${self.balance}\n@~~~~~~~~~~~~~~~~~~~~~~@")
-        print("\nSelect an option:\n" \
-        "1 : Blackjack\n" \
-        "2 : Slots\n" \
-        "3 : Roullette\n" \
-        "4 : Check balance / stats\n" \
-        "5 : Cash out \n")
 
         while True : 
+            clearScreen()
+            print("\n".join([
+                ">>==============================================<<",
+                "📈 Welcome to the Casino 📉".center(50),
+                f"Balance: ${self.balance}".center(50),
+                ">>==============================================<<",
+                "Select an option:",
+                "",
+                "1 : Blackjack",
+                "2 : Roulette",
+                "3 : Slots",
+                "4 : Stats",
+                "5 : Cash out (quit)"
+            ]))
+
+        
             userInput = input("> ")
 
             if(userInput == "1") :
@@ -32,20 +47,39 @@ class Casino:
             elif(userInput == "3") :
                 print("Not implemented yet")
             elif(userInput == "4") :
-                print("Not implemented yet")
-                print(f"TOTAL BALANCE :{self.balance}")
+                self.showStats()
+                input("Press (enter) to return")
+
             elif(userInput =="5") :
-                print(f"TOTAL BALANCE :{self.balance}")
-                return
+                r = input("Are you sure you would like to quit? (y/n) > ")
+                if(r == "y" or r == "yes") :
+                    self.cashOut()
+                    return
             else :
                 print("Invalid selection (1 - 5)")
+                input("(enter) to continue")  
+
+    def showStats(self) :
+        clearScreen()
+        s = self.stats
+        print("===  Stats ===\n")
+
+        print(f"Final balance:   {self.balance}")
+        print(f"Highest balance: {s["highestBalance"]}")
+        print(f"Biggest win:     {s["biggestWin"]}")
+        print(f"Biggest loss:    {s["biggestLoss"]}\n")
+        print(f"Blackjack wins:  {s["blackjackWins"]}")
+        print(f"Blackjack Loses: {s["blackjackLoses"]}\n")
+
+    def cashOut(self) :
+        self.showStats()
+
     
     def removeBalance(self, amount) :
         self.balance = self.balance - amount
     
     def addBalance(self, amount) :
         self.balance = self.balance + amount
-
 
 class Card:
         
@@ -98,48 +132,72 @@ class Deck :
         for card in self.cards :
             print(card)
 
-
 class Blackjack :
-    bet = 1
+    bet = 0
 
     def __init__(self, casinoObject) :
         self.casino = casinoObject
-        self.balance = casinoObject.balance
 
     def welcome(self) :
 
-        clearScreen()
-        print(">>====================<<\nWelcome to Blackjack")
-        print(f"Balance: \033[1m${self.balance}\n\033[0mCurrent bet: \033[1m${self.bet}")
-        print(f"\033[0m>>====================<<\nSelect an option:\n\n" \
-        "1 : Place bet\n" \
-        "2 : Draw hand\n" \
-        "3 : Return to main menu\n")
-        
         while True :
-            userInput = input("> ")
+            clearScreen()
+            print("\n".join([
+                ">>==============================================<<",
+                "🃏 Welcome to Blackjack 🃏".center(48),
+                f"Balance: ${self.casino.balance} | Bet: ${self.bet}".center(50),
+                ">>==============================================<<",
+                "Select an option:",
+                "",
+                "1 : Place bet",
+                "2 : Draw hand",
+                "3 : Return to main menu"
+            ]))
+
+            
+            
+            userInput = input("> ").strip().lower()
             if(userInput == "1") :
-                self.placeBet()
-                return
+                self.bet = self.placeBet()
+
             elif(userInput == "2") :
-                self.playHand()
-                return                
+                if (self.bet > self.casino.balance) :
+                    self.bet = self.placeBet()
+                
+                while True :
+                    self.playHand()
+
+                    if self.casino.balance <= 0 :
+                        print("You are out of money.")
+                        self.bet = 0
+                        input("(enter)")
+                        break   
+
+                    i = input("Play again with same bet (y/n)? > ").strip().lower()
+                    if i not in ("y","yes"):
+                        break
+                    
+                    if self.bet > self.casino.balance:
+                        print("Bet exceeds balance. Place a new bet.")
+                        self.bet = self.placeBet()
+                             
             elif(userInput == "3") :
-                self.casino.mainMenu()
                 return
             else :
                 print("Not a valid selection (1 - 3)")
 
     def placeBet(self) :
         while True :
-            i = input(f"Bet amount ($1 - ${self.balance}) > ")
-            ##makes it an int
-            val = int(float(i))
-            if(val >= 1 and val <= self.balance) :
-                self.bet = val
-                self.welcome()
+            i = input(f"Bet amount ($1 - ${self.casino.balance}) > ").strip()
+            try:
+                val = int(float(i))
+            except ValueError :
+                print("Please enter a number.")
+                continue
+            if(val >= 1 and val <= self.casino.balance) :
+                return val
             else :
-                print(f"Please enter a valid number between 1 and {self.balance}")
+                print(f"Please enter a valid number between 1 and {self.casino.balance}")
                     
     def playHand(self) :
 
@@ -155,9 +213,12 @@ class Blackjack :
         playerScore = self.calculateScore(playerHand)
 
         clearScreen()
-        print("🃏>====================<🃏\n\033[1mBlackjack \033[0m")
-        print(f"Balance: \033[1m${self.balance}\n\033[0mCurrent bet: \033[1m${self.bet}\033[0m")
-        print(f">>====================<<")
+        print("\n".join([
+                ">>==============================================<<",
+                "🃏 Blackjack 🃏".center(48),
+                f"Balance: ${self.casino.balance} | Bet: ${self.bet}".center(50),
+                ">>==============================================<<"
+            ]))
         
         
         print(f"Dealer hand: (Score: {dealerScore})")
@@ -165,6 +226,13 @@ class Blackjack :
         print(f"Your hand: (Score: {playerScore})")
         self.printHand(playerHand)
         
+        if(playerScore == 21 and len(playerHand) == 2) :
+            win = self.bet + (self.bet/2)
+            self.winBalance(int(win))
+            self.casino.stats["blackjackWins"] += 1
+            print(f"Natural Blackjack. You win ${int(win)}")
+            return
+
 
         while True :
             i = input("Would you like to (h)it or (s)tand? > ")
@@ -174,9 +242,12 @@ class Blackjack :
                 playerScore = self.calculateScore(playerHand)
 
                 clearScreen()
-                print("🃏>====================<🃏\n\033[1mBlackjack \033[0m")
-                print(f"Balance: \033[1m${self.balance}\n\033[0mCurrent bet: \033[1m${self.bet}\033[0m")
-                print(f">>====================<<")
+                print("\n".join([
+                    ">>==============================================<<",
+                    "🃏 Blackjack 🃏".center(48),
+                    f"Balance: ${self.casino.balance} | Bet: ${self.bet}".center(50),
+                    ">>==============================================<<"
+                ]))
 
                 print(f"Dealer hand: (Score: {dealerScore})")
                 self.printHand(dealerHand)
@@ -185,17 +256,9 @@ class Blackjack :
 
                 #if player busts
                 if(playerScore > 21) :
-                    self.looseBalance()
-                    print(f"Bust. You loose ${self.bet}.")
-
-                    l = input("Would you like to play again(y/n)? > ")
-                    if(l == "y" or l == "yes") :
-                        ##if the bet is higher than the balance
-                        if(self.balance < self.bet) :
-                            self.placeBet()
-                        self.playHand()
-                    else :
-                        casino.mainMenu()
+                    self.loseBalance(self.bet)
+                    print(f"Bust. You lose ${self.bet}.")
+                    return
 
 
 
@@ -205,9 +268,12 @@ class Blackjack :
                     dealerScore = self.calculateScore(dealerHand)
 
                 clearScreen()
-                print("🃏>====================<🃏\n\033[1mBlackjack \033[0m")
-                print(f"Balance: \033[1m${self.balance}\n\033[0mCurrent bet: \033[1m${self.bet}\033[0m")
-                print(f">>====================<<")
+                print("\n".join([
+                    ">>==============================================<<",
+                    "🃏 Blackjack 🃏".center(48),
+                    f"Balance: ${self.casino.balance} | Bet: ${self.bet}".center(50),
+                    ">>==============================================<<"
+                ]))
 
                 print(f"Dealer hand: (Score: {dealerScore})")
                 self.printHand(dealerHand)
@@ -215,35 +281,26 @@ class Blackjack :
                 self.printHand(playerHand)
 
                 if(dealerScore > 21) :
-                    self.winBalance()
+                    self.winBalance(self.bet)
+                    self.casino.stats["blackjackWins"] += 1
                     print(f"Dealer busts! You win ${self.bet}.")
 
                 elif(dealerScore == playerScore) :
                     print("Push. Bet is returned.")
                 
                 elif(dealerScore > playerScore) :
-                    self.looseBalance()
-                    print(f"Dealer wins. You loose ${self.bet}.")
+                    self.loseBalance(self.bet)
+                    self.casino.stats["blackjackLoses"] += 1
+                    print(f"Dealer wins. You lose ${self.bet}.")
                 
                 elif(dealerScore < playerScore) :
-                    self.winBalance()
+                    self.winBalance(self.bet)
+                    self.casino.stats["blackjackWins"] += 1
                     print(f"You win! You win ${self.bet}")
-                
-                l = input("Would you like to play again(y/n)? > ")
-                if(l == "y" or l == "yes") :
-                    ##if the bet is higher than the balance
-                    if(self.balance < self.bet) :
-                        self.placeBet()
-                    self.playHand()
-                else :
-                    casino.mainMenu()
-                        
-
-
+                return  
             else :
                 print("Please hit or stand (h,hit / s,stand)")
     
-
     def printHand(self, hand) :
         for card in hand :
             print(f"{card.getRank()} of {card.getSuit()}")
@@ -270,14 +327,20 @@ class Blackjack :
 
         return output
 
-    def looseBalance(self) :
-        self.casino.removeBalance(self.bet)
-        self.balance -= self.bet
+    def loseBalance(self,amount) :
+        self.casino.removeBalance(amount)
+        
+        if(amount > self.casino.stats["biggestLoss"]) :
+            self.casino.stats["biggestLoss"] = amount
 
-    def winBalance(self) :
-        self.casino.addBalance(self.bet)
-        self.balance += self.bet
+    def winBalance(self,amount) :
+        self.casino.addBalance(amount)
 
+        if(amount > self.casino.stats["biggestWin"]) :
+            self.casino.stats["biggestWin"] = amount
+        
+        if(self.casino.balance > self.casino.stats["highestBalance"]) :
+            self.casino.stats["highestBalance"] = self.casino.balance
 
 def clearScreen():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -287,10 +350,7 @@ def main() :
     casino.mainMenu()
 
 if __name__ == "__main__":
-   ##main()
-   casino = Casino(500)
-   game = Blackjack(casino)
-   game.playHand()
+   main()
    
 
    
