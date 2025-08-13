@@ -14,7 +14,10 @@ class Casino:
             "biggestLoss": 0,
             "blackjackWins": 0,
             "blackjackLoses": 0,
-            "blackjacks": 0
+            "blackjacks": 0,
+            "rouletteSpins": 0,
+            "rouletteHits":0,
+            "rouletteLosses": 0
         }
 
     def mainMenu(self):
@@ -48,7 +51,7 @@ class Casino:
                 print("Not implemented yet")
             elif(userInput == "4") :
                 self.showStats()
-                input("Press (enter) to return")
+                input("\nPress (enter) to return")
 
             elif(userInput =="5") :
                 r = input("Are you sure you would like to quit? (y/n) > ")
@@ -69,8 +72,10 @@ class Casino:
         print(f"Biggest win:        | {s['biggestWin']}")
         print(f"Biggest loss:       | {s['biggestLoss']}\n")
         print(f"Blackjack wins:     | {s['blackjackWins']}")
-        print(f"Blackjack Loses:    | {s['blackjackLoses']}\n")
-        print(f"Natural Blackjacks: | {s['blackjacks']}\n")
+        print(f"Blackjack losses:   | {s['blackjackLoses']}")
+        print(f"Natural blackjacks: | {s['blackjacks']}\n")
+        print(f"Roulette wins:      | {s['rouletteHits']}")
+        print(f"Roulette losses:    | {s['rouletteLosses']}")
 
     def cashOut(self) :
         self.showStats()
@@ -450,7 +455,7 @@ class Roulette :
                 input("Press enter to return > ")
             elif(userInput == "4") :
                 self.roll()
-                input("Press enter to return > ")
+                input("\nPress enter to return > ")
                 self.bets = []
                 self.totalBet = 0
 
@@ -787,10 +792,10 @@ class Roulette :
         for bet in self.bets:
             if self.betWins(bet["type"], bet["nums"], winning):
                 winBets.append(bet)
-                totalWon =+ bet["bet"] * (self.PAYOUT[bet["type"]] + 1)
+                totalWon += bet["bet"] * (self.PAYOUT[bet["type"]] + 1)
             else:
                 lossBets.append(bet)
-                totalLost =+ bet["bet"] * (self.PAYOUT[bet["type"]] + 1)
+                totalLost += bet["bet"] 
         
         print(f"Winning bets: (${totalWon})") 
         print("=============")
@@ -798,11 +803,25 @@ class Roulette :
             payout = bet["bet"] * (self.PAYOUT[bet["type"]] + 1)
             self.casino.balance += payout
             print(f"    {bet['message']} -> Wins ${payout}")
+            self.casino.stats["rouletteHits"] += 1
+
+        
+        if(totalWon > self.casino.stats["biggestWin"]) :
+            self.casino.stats["biggestWin"] = totalWon
+            
 
         print(f"Losing bets: (${totalLost})") 
         print("=============")
         for bet in lossBets :
             print(f"    {bet['message']} -> Lost ${bet["bet"]}")
+            self.casino.stats["rouletteLosses"] += 1
+
+        
+        if(totalLost > self.casino.stats["biggestLoss"]) :
+            self.casino.stats["biggestLoss"] = totalLost
+        
+        if(self.casino.balance == 0) :
+            print("/nBankrupt. You loose.")
 
 
     def isRed(self, s) :
